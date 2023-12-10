@@ -50,7 +50,8 @@ const ball = {
   color: "yellow",
   init: () => {
     ball.x = screenContainer.width / 2;
-    ball.y = screenContainer.height / 2;
+    ball.y = screenContainer.height * 0.7;
+    ball.dx = Math.random() < 0.5 ? -0.1 : 0.1;
     ball.dy = ball.speed;
     ball.element = document.createElement("div");
     ball.element.style.position = "absolute";
@@ -102,46 +103,66 @@ const ball = {
   },
 };
 
-const block = {
+const blocks = Array.from({ length: 8 }).map((_, index) => ({
   element: null,
-  width: 70,
-  height: 20,
+  width: 50,
+  height: 15,
   x: 0,
   y: 0,
+  dx: 0,
+  isActve: true,
   color: "blue",
-  init: () => {
-    block.element = document.createElement("div");
-    block.element.style.position = "absolute";
-    block.element.style.width = block.width + "px";
-    block.element.style.height = block.height + "px";
-    block.element.style.left = block.x + "px";
-    block.element.style.top = block.y + "px";
-    block.element.style.backgroundColor = block.color;
-    screenContainer.element.appendChild(block.element);
+  init() {
+    this.x = Math.random() * (screenContainer.width - this.width);
+    this.y = index * (this.height + 10);
+    this.dx = Math.random() < 0.5 ? 1 : -1;
+    this.color = `hsl(${(index * 360) / 8}, 100%, 50%)`;
+    this.element = document.createElement("div");
+    this.element.style.position = "absolute";
+    this.element.style.width = this.width + "px";
+    this.element.style.height = this.height + "px";
+    this.element.style.left = this.x + "px";
+    this.element.style.top = this.y + "px";
+    this.element.style.backgroundColor = this.color;
+    screenContainer.element.appendChild(this.element);
   },
-  update: () => {
-    block.element.style.left = block.x + "px";
-    block.element.style.top = block.y + "px";
+  update() {
+    if (this.isActve === false) {
+      return;
+    }
+    this.x += this.dx;
+    if (this.x < 0) {
+      this.x = 0;
+      this.dx *= -1;
+    }
+    if (this.x > screenContainer.width - this.width) {
+      this.x = screenContainer.width - this.width;
+      this.dx *= -1;
+    }
+
+    this.element.style.left = this.x + "px";
+    this.element.style.top = this.y + "px";
 
     if (
-      ball.x + ball.radius > block.x &&
-      ball.x - ball.radius < block.x + block.width &&
-      ball.y + ball.radius > block.y &&
-      ball.y - ball.radius < block.y + block.height
+      ball.x + ball.radius > this.x &&
+      ball.x - ball.radius < this.x + this.width &&
+      ball.y + ball.radius > this.y &&
+      ball.y - ball.radius < this.y + this.height
     ) {
       ball.dy *= -1;
-      block.element.style.display = "none";
+      this.isActve = false;
+      this.element.style.display = "none";
     }
   },
-};
+}));
 
 const paddle = {
   element: null,
   width: 70,
-  height: 10,
+  height: 7,
   x: 0,
   y: 0,
-  movingDistance: 5,
+  spped: 5,
   color: "white",
   init: () => {
     paddle.x = screenContainer.width / 2 - paddle.width / 2;
@@ -160,13 +181,13 @@ const paddle = {
     paddle.element.style.top = paddle.y + "px";
   },
   moveLeft: () => {
-    paddle.x -= paddle.movingDistance;
+    paddle.x -= paddle.spped;
     if (paddle.x < 0) {
       paddle.x = 0;
     }
   },
   moveRight: () => {
-    paddle.x += paddle.movingDistance;
+    paddle.x += paddle.spped;
     if (paddle.x > screenContainer.width - paddle.width) {
       paddle.x = screenContainer.width - paddle.width;
     }
@@ -224,7 +245,9 @@ const init = () => {
 
   ball.init();
   paddle.init();
-  block.init();
+  blocks.forEach((block) => {
+    block.init();
+  });
   tick();
 };
 
@@ -295,11 +318,20 @@ const initController = () => {
   };
 };
 
-const getTargetCell = (x, y) => {};
-
-const moveBlock = (dx, dy, dr) => {};
-
-const removeBlock = (type, x, y, rotation = 0) => {};
+const showGameClearMessage = () => {
+  let messageElement = document.createElement("div");
+  messageElement.style.position = "relative";
+  messageElement.style.zIndex = "1";
+  messageElement.style.width = screenContainer.width + "px";
+  messageElement.style.height = screenContainer.height * 0.9 + "px";
+  messageElement.style.display = "flex";
+  messageElement.style.alignItems = "center";
+  messageElement.style.justifyContent = "center";
+  messageElement.style.color = "blue";
+  messageElement.style.fontSize = "32px";
+  messageElement.textContent = "Game Clear !!";
+  screenContainer.element.appendChild(messageElement);
+};
 
 const showGameOverMessage = () => {
   let messageElement = document.createElement("div");
@@ -326,7 +358,12 @@ const tick = () => {
 
   ball.update();
   paddle.update();
-  block.update();
+  blocks.forEach((block) => block.update());
+
+  if (blocks.every((block) => block.isActve === false)) {
+    showGameClearMessage();
+    return;
+  }
 
   if (isGameOver) {
     showGameOverMessage();

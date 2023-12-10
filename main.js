@@ -42,12 +42,16 @@ const controllerContainer = {
 const ball = {
   element: null,
   radius: 5,
-  x: screenContainer.width / 2,
-  y: screenContainer.height / 2,
+  x: 0,
+  y: 0,
   dx: 0,
-  dy: 2,
+  dy: 0,
+  speed: 4,
   color: "yellow",
   init: () => {
+    ball.x = screenContainer.width / 2;
+    ball.y = screenContainer.height / 2;
+    ball.dy = ball.speed;
     ball.element = document.createElement("div");
     ball.element.style.position = "absolute";
     ball.element.style.width = ball.radius * 2 + "px";
@@ -61,6 +65,7 @@ const ball = {
   update: () => {
     ball.x += ball.dx;
     ball.y += ball.dy;
+
     if (ball.x < ball.radius) {
       ball.x = ball.radius;
       ball.dx *= -1;
@@ -78,12 +83,18 @@ const ball = {
       ball.element.style.display = "none";
     }
     if (
-      ball.x > paddle.x &&
-      ball.x < paddle.x + paddle.width &&
-      ball.y > paddle.y - paddle.height
+      ball.x + ball.radius > paddle.x &&
+      ball.x - ball.radius < paddle.x + paddle.width &&
+      ball.y > paddle.y - ball.radius &&
+      ball.y < paddle.y + paddle.height
     ) {
-      ball.y = paddle.y - paddle.height;
+      ball.y = paddle.y - ball.radius;
       ball.dy *= -1;
+      const ratio = ((ball.x - paddle.x) / paddle.width) * 2 - 1;
+      const angle = 60 * ratio;
+      debugElement.textContent = angle;
+      ball.dx = Math.sin((angle * Math.PI) / 180) * ball.speed;
+      ball.dy = -Math.cos((angle * Math.PI) / 180) * ball.speed;
     }
 
     ball.element.style.left = ball.x - ball.radius + "px";
@@ -94,7 +105,7 @@ const ball = {
 const block = {
   element: null,
   width: 70,
-  height: 30,
+  height: 20,
   x: 0,
   y: 0,
   color: "blue",
@@ -111,6 +122,16 @@ const block = {
   update: () => {
     block.element.style.left = block.x + "px";
     block.element.style.top = block.y + "px";
+
+    if (
+      ball.x + ball.radius > block.x &&
+      ball.x - ball.radius < block.x + block.width &&
+      ball.y + ball.radius > block.y &&
+      ball.y - ball.radius < block.y + block.height
+    ) {
+      ball.dy *= -1;
+      block.element.style.display = "none";
+    }
   },
 };
 
@@ -118,11 +139,13 @@ const paddle = {
   element: null,
   width: 70,
   height: 10,
-  x: screenContainer.width / 2,
-  y: screenContainer.height * 0.85,
+  x: 0,
+  y: 0,
   movingDistance: 5,
   color: "white",
   init: () => {
+    paddle.x = screenContainer.width / 2 - paddle.width / 2;
+    paddle.y = screenContainer.height * 0.85;
     paddle.element = document.createElement("div");
     paddle.element.style.position = "absolute";
     paddle.element.style.width = paddle.width + "px";
@@ -196,6 +219,7 @@ const init = () => {
   controllerContainer.element.style.alignItems = "center";
   controllerContainer.element.style.justifyContent = "center";
   mainContainer.element.appendChild(controllerContainer.element);
+
   initController();
 
   ball.init();
@@ -293,13 +317,13 @@ const showGameOverMessage = () => {
 };
 
 const tick = () => {
-  debugElement.textContent = controllerContainer.status.leftButtonPressed;
   if (controllerContainer.status.leftButtonPressed) {
     paddle.moveLeft();
   }
   if (controllerContainer.status.rightButtonPressed) {
     paddle.moveRight();
   }
+
   ball.update();
   paddle.update();
   block.update();

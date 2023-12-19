@@ -51,7 +51,7 @@ const ball = {
   init: () => {
     ball.x = screenContainer.width / 2;
     ball.y = screenContainer.height * 0.7;
-    ball.dx = Math.random() < 0.5 ? -0.1 : 0.1;
+    ball.dx = 0;
     ball.dy = ball.speed;
     ball.element = document.createElement("div");
     ball.element.style.position = "absolute";
@@ -103,20 +103,26 @@ const ball = {
   },
 };
 
-const blocks = Array.from({ length: 8 }).map((_, index) => ({
+const blockRow = 5;
+const blockCol = 7;
+const blockPadding = 10;
+
+const blocks = Array.from({ length: blockRow * blockCol }).map((_, index) => ({
   element: null,
-  width: 50,
+  width: 45,
   height: 15,
   x: 0,
   y: 0,
-  dx: 0,
   isActve: true,
-  color: "blue",
+  color: null,
   init() {
-    this.x = Math.random() * (screenContainer.width - this.width);
-    this.y = index * (this.height + 10);
-    this.dx = Math.random() < 0.5 ? 1 : -1;
-    this.color = `hsl(${(index * 360) / 8}, 100%, 50%)`;
+    this.x = (index % blockRow) * (this.width + blockPadding) + blockPadding;
+    this.y =
+      Math.trunc(index / blockRow) * (this.height + blockPadding) +
+      blockPadding;
+    this.color = `hsl(${
+      (Math.trunc(index / blockRow) * 360) / blockCol
+    }, 100%, 50%)`;
     this.element = document.createElement("div");
     this.element.style.position = "absolute";
     this.element.style.width = this.width + "px";
@@ -129,15 +135,6 @@ const blocks = Array.from({ length: 8 }).map((_, index) => ({
   update() {
     if (this.isActve === false) {
       return;
-    }
-    this.x += this.dx;
-    if (this.x < 0) {
-      this.x = 0;
-      this.dx *= -1;
-    }
-    if (this.x > screenContainer.width - this.width) {
-      this.x = screenContainer.width - this.width;
-      this.dx *= -1;
     }
 
     this.element.style.left = this.x + "px";
@@ -195,7 +192,6 @@ const paddle = {
 };
 
 let debugElement = null;
-
 let isGameOver = false;
 
 const init = () => {

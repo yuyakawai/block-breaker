@@ -93,7 +93,6 @@ const ball = {
       ball.dy *= -1;
       const ratio = ((ball.x - paddle.x) / paddle.width) * 2 - 1;
       const angle = 60 * ratio;
-      debugElement.textContent = angle;
       ball.dx = Math.sin((angle * Math.PI) / 180) * ball.speed;
       ball.dy = -Math.cos((angle * Math.PI) / 180) * ball.speed;
     }
@@ -191,7 +190,6 @@ const paddle = {
   },
 };
 
-let debugElement = null;
 let isGameOver = false;
 
 const init = () => {
@@ -370,7 +368,5 @@ const tick = () => {
 };
 
 window.onload = () => {
-  debugElement = document.getElementById("debug-message");
-  debugElement.textContent = "debug";
   init();
 };

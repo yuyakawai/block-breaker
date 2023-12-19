@@ -321,7 +321,7 @@ const showGameClearMessage = () => {
   messageElement.style.display = "flex";
   messageElement.style.alignItems = "center";
   messageElement.style.justifyContent = "center";
-  messageElement.style.color = "blue";
+  messageElement.style.color = "yellow";
   messageElement.style.fontSize = "32px";
   messageElement.textContent = "Game Clear !!";
   screenContainer.element.appendChild(messageElement);
